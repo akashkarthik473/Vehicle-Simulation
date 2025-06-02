@@ -1,5 +1,6 @@
 import pygame
 import math
+from pid import PID
 import csv
 from datetime import datetime
 
@@ -92,6 +93,8 @@ clock = pygame.time.Clock()
 running = True
 dt = 0
 
+
+
 # Create vehicle
 vehicle = Vehicle(0, screen.get_height() / 2)
 
@@ -100,6 +103,13 @@ motion_dots = []
 frame_count = 0
 
 total_time = 1
+
+# Target speed
+target_speed = 10
+current_speed = 0
+
+# Create PID controller
+pid = PID(Kp=1, Ki=0, Kd=0, saturation=1.0)
 
 while running:
     # pygame.QUIT event means the user clicked X to close your window
@@ -110,7 +120,14 @@ while running:
     # fill the screen with a color to wipe away anything from last frame
     screen.fill("purple")
 
-    vehicle.throttle = 1
+    # Update current speed
+    current_speed = vehicle.velocity.length()
+
+    # Update PID controller
+    pid.update_setpoint(target_speed)
+    throttle = pid.compute(current_speed)
+    vehicle.throttle = throttle
+
 
     # Add new dot every 6 frames
     frame_count += 1
