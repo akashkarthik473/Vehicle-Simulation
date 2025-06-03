@@ -1,36 +1,25 @@
 class PID:
-    def __init__(self, Kp, Ki, Kd, saturation, dH=100):
-        self.Kp = Kp
-        self.Ki = Ki
-        self.Kd = Kd
-        self.saturation = saturation
-        self.dH = dH
+    def __init__(self, kp, ki, kd, saturation, gain_factor=10):
+        self.Kp, self.Ki, self.Kd = kp, ki, kd
+        self.sat  = saturation
+        self.gf   = gain_factor        # 10 → 0.1 resolution like the C code
+        self.set  = 0
+        self.errI = 0
+        self.prev = 0
+        self.out  = 0
 
-        self.setpoint = 0
-        self.previous_error = 0
-        self.total_error = 0
-        self.output = 0
-        self.derivative = 0
+    def update_setpoint(self, val): self.set = val
 
-    def update_setpoint(self, setpoint):
-        self.setpoint = min(setpoint, self.saturation)
+    def compute(self, value):
+        err = self.set - value
+        self.errI += err
+        d_err = err - self.prev
+        self.prev = err
 
-    def compute(self, sensor_value):
-        error = self.setpoint - sensor_value
-
-        proportional = self.Kp * error / 10
-        self.total_error += error
-        integral = self.Ki * self.total_error / self.dH / 10
-
-        diff = error - self.previous_error
-        alpha = 0.1
-        self.derivative = alpha * (self.Kd * diff * self.dH / 10) + (1 - alpha) * self.derivative
-        self.previous_error = error
-
-        output = proportional + integral + self.derivative
-
-        if self.saturation > 0:
-            output = max(-self.saturation, min(output, self.saturation))
-
-        self.output = output
-        return output
+        raw = (
+            self.Kp * err     +
+            self.Ki * self.errI / self.gf +
+            self.Kd * d_err * self.gf
+        )
+        self.out = max(-self.sat, min(raw, self.sat))
+        return self.out
