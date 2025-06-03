@@ -30,7 +30,7 @@ class PID:
         output = proportional + integral + self.derivative
 
         if self.saturation > 0:
-            output = max(min(output, self.saturation), 0)
+            output = max(-self.saturation, min(output, self.saturation))
 
         self.output = output
         return output
