@@ -2,7 +2,7 @@ class PID:
     def __init__(self, kp, ki, kd, saturation, gain_factor=10):
         self.Kp, self.Ki, self.Kd = kp, ki, kd
         self.sat  = saturation
-        self.gf   = gain_factor        # 10 → 0.1 resolution like the C code
+        self.gf   = gain_factor
         self.set  = 0
         self.errI = 0
         self.prev = 0

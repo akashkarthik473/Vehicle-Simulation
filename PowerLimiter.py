@@ -5,10 +5,10 @@ class PowerLimiter:
     Mirrors PowerLimit struct + methods in powerLimit.c (mode 1 & 2)
     """
     def __init__(self):
-        self.pid  = PID(10, 0, 0, 231, 10)
+        self.pid  = PID(0, 0, 0, 231, 10)
         self.mode = 1
-        self.target_kw      = 90         # 80 kW class target + fudge
-        self.discrepancy_kw = 15
+        self.target_kw      = 80
+        self.discrepancy_kw = 20
         self.always_on      = True
         self.enabled        = False
         self.torque_cmd_Nm  = 0
