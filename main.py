@@ -78,6 +78,7 @@ while running:
     vehicle.steering = steering_input
 
     current_speed = vehicle.velocity.length()
+    current_speed_mph = current_speed * 2.23694
 
     # 0-60 mph timing
     if not zero_to_sixty_started and current_speed > 0.1:
@@ -107,7 +108,7 @@ while running:
     screen.fill("purple")
 
     # Display info
-    speed_text = font.render(f"Speed: {current_speed:5.1f} m/s", True, "white")
+    speed_text = font.render(f"Speed: {current_speed_mph:5.1f} mph", True, "white")
     throttle_text = font.render(f"Throttle: {throttle_input*100:3.0f}%", True, "white")
     brake_text = font.render(f"Brake: {brake_input*100:3.0f}%", True, "white")
     steering_text = font.render(f"Steering: {steering_input*100:3.0f}%", True, "white")

@@ -32,8 +32,8 @@ class Vehicle:
         self.steering = 0
         self.throttle = 0
         self.brake = 0
-        self.rolling_friction = 0.005
-        self.air_drag = 0.15
+        self.rolling_friction = 0
+        self.air_drag = 0
         self.power_limiter = PowerLimiter()
 
         # Steering parameters
@@ -51,7 +51,7 @@ class Vehicle:
         self.radius = 20
         self.color = "red"
         self.wheel_color = "black"
-        self.wheel_radius = 8
+        self.wheel_draw_radius = 8
 
         # Data logging
         self.log_file = open(f'vehicle_data_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv', 'w', newline='')
@@ -78,12 +78,13 @@ class Vehicle:
             self.throttle, self.brake, self.steering,
             self.acceleration.x, self.acceleration.y,
             motor_rpm, self.motor_torque,
-            mech_power_kw, self.limited_torque
+            mech_power_kw, self.motor_torque
         ])
         self.log_file.flush()
 
     def update(self, dt):
         heading = pygame.Vector2(math.cos(self.angle), math.sin(self.angle))
+        heading = heading.normalize()
         right = pygame.Vector2(-heading.y, heading.x)
 
         # Motor physics
@@ -95,17 +96,12 @@ class Vehicle:
         torque_factor = max(0, 1 - (motor_rpm / self.motor_max_rpm))
         requested_torque = self.motor_max_torque * self.throttle * torque_factor
 
-        # Calculate mechanical power
+        # Calculate mechanical power (not used for limiting now)
         mech_power_watts = requested_torque * motor_rpm * 2 * math.pi / 60
         mech_power_kw = mech_power_watts / 1000
 
-        # Apply power limiting
-        self.limited_torque = self.power_limiter.step(
-            mech_power_kw, 
-            motor_rpm, 
-            requested_torque
-        )
-        self.motor_torque = self.limited_torque
+        # Bypass power limiter for debugging
+        self.motor_torque = requested_torque
 
         # Convert motor torque to wheel force
         wheel_torque = self.motor_torque * self.gear_ratio
@@ -118,7 +114,7 @@ class Vehicle:
 
         # Forces
         if speed > 0:
-            drag_force = -self.air_drag * speed * self.velocity
+            drag_force = -self.air_drag * speed * speed * self.velocity.normalize()
             friction_force = -self.rolling_friction * self.mass * 9.81 * self.velocity / speed
             engine_force += drag_force + friction_force + brake_force
 
@@ -156,7 +152,7 @@ class Vehicle:
         back_right = back - right * wheel_offset
         
         for wheel_pos in [front_left, front_right, back_left, back_right]:
-            pygame.draw.circle(screen, self.wheel_color, wheel_pos, self.wheel_radius)
+            pygame.draw.circle(screen, self.wheel_color, wheel_pos, self.wheel_draw_radius)
 
     def __del__(self):
         if hasattr(self, 'log_file'):

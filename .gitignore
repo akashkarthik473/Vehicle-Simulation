@@ -1,1 +1,4 @@
 *.csv
+
+# Ignore bug testing log
+bug_testing.txt
